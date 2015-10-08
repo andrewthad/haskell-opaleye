@@ -64,7 +64,7 @@ data BinOp = Except | ExceptAll | Union | UnionAll | Intersect | IntersectAll de
 data Returning a = Returning a (NEL.NonEmpty HSql.SqlExpr)
 
 sqlQueryGenerator :: PQ.PrimQueryFold Select
-sqlQueryGenerator = (unit, baseTable, product, aggregate, order, limit_, join,
+sqlQueryGenerator = (unit, baseTable, product, exists, aggregate, order, limit_, join,
                      values, binary)
 
 sql :: ([HPQ.PrimExpr], PQ.PrimQuery, T.Tag) -> Select
@@ -86,6 +86,9 @@ product :: NEL.NonEmpty Select -> [HPQ.PrimExpr] -> Select
 product ss pes = SelectFrom $
     newSelect { tables = NEL.toList ss
               , criteria = map sqlExpr pes }
+
+exists :: Select -> Select -> Bool -> Select
+exists = "NOT SURE HOW TO WRITE THIS"
 
 aggregate :: [(Symbol, (Maybe HPQ.AggrOp, HPQ.PrimExpr))] -> Select -> Select
 aggregate aggrs s = SelectFrom $ newSelect { attrs = SelectAttrs

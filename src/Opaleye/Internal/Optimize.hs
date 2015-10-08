@@ -10,7 +10,7 @@ optimize :: PQ.PrimQuery -> PQ.PrimQuery
 optimize = mergeProduct . removeUnit
 
 removeUnit :: PQ.PrimQuery -> PQ.PrimQuery
-removeUnit = PQ.foldPrimQuery (PQ.Unit, PQ.BaseTable, product, PQ.Aggregate,
+removeUnit = PQ.foldPrimQuery (PQ.Unit, PQ.BaseTable, product, PQ.Exists, PQ.Aggregate,
                                 PQ.Order, PQ.Limit, PQ.Join, PQ.Values,
                                 PQ.Binary)
   where product pqs pes = PQ.Product pqs' pes
@@ -19,7 +19,7 @@ removeUnit = PQ.foldPrimQuery (PQ.Unit, PQ.BaseTable, product, PQ.Aggregate,
                          xs -> NEL.fromList xs
 
 mergeProduct :: PQ.PrimQuery -> PQ.PrimQuery
-mergeProduct = PQ.foldPrimQuery (PQ.Unit, PQ.BaseTable, product, PQ.Aggregate,
+mergeProduct = PQ.foldPrimQuery (PQ.Unit, PQ.BaseTable, product, PQ.Exists, PQ.Aggregate,
                                 PQ.Order, PQ.Limit, PQ.Join, PQ.Values,
                                 PQ.Binary)
   where product pqs pes = PQ.Product pqs' (pes ++ pes')

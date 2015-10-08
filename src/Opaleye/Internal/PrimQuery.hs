@@ -31,6 +31,7 @@ tiToSqlTable ti = HSql.SqlTable { HSql.sqlTableSchemaName = tiSchemaName ti
 data PrimQuery = Unit
                | BaseTable TableIdentifier [(Symbol, HPQ.PrimExpr)]
                | Product (NEL.NonEmpty PrimQuery) [HPQ.PrimExpr]
+               | Exists PrimQuery PrimQuery Bool
                | Aggregate [(Symbol, (Maybe HPQ.AggrOp, HPQ.PrimExpr))] PrimQuery
                | Order [HPQ.OrderExpr] PrimQuery
                | Limit LimitOp PrimQuery
@@ -42,6 +43,7 @@ data PrimQuery = Unit
 type PrimQueryFold p = ( p
                        , TableIdentifier -> [(Symbol, HPQ.PrimExpr)] -> p
                        , NEL.NonEmpty p -> [HPQ.PrimExpr] -> p
+                       , p -> p -> Bool -> p
                        , [(Symbol, (Maybe HPQ.AggrOp, HPQ.PrimExpr))] -> p -> p
                        , [HPQ.OrderExpr] -> p -> p
                        , LimitOp -> p -> p
@@ -51,12 +53,13 @@ type PrimQueryFold p = ( p
                        )
 
 foldPrimQuery :: PrimQueryFold p -> PrimQuery -> p
-foldPrimQuery (unit, baseTable, product, aggregate, order, limit, join, values,
+foldPrimQuery (unit, baseTable, product, exists, aggregate, order, limit, join, values,
                binary) = fix fold
   where fold self primQ = case primQ of
           Unit                       -> unit
           BaseTable ti syms          -> baseTable ti syms
           Product pqs pes            -> product (fmap self pqs) pes
+          Exists q1 q2 b             -> exists (self q1) (self q2) b
           Aggregate aggrs pq         -> aggregate aggrs (self pq)
           Order pes pq               -> order pes (self pq)
           Limit op pq                -> limit op (self pq)
